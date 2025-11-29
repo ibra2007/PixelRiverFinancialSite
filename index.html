@@ -587,7 +587,6 @@
             <li><a href="locations.html?city=london">London, UK</a></li>
             <li><a href="locations.html?city=sg">Singapore, SG</a></li>
             <li><a href="locations.html?city=ny">New York, USA</a></li>
-            <li><a href="locations.html?city=tokyo">Tokyo, Japan</a></li>
           </ul>
         </div>
 
@@ -597,7 +596,7 @@
             <li><a href="about.html">Our Vision</a></li>
             <li><a href="dashboard.html">Client Portal</a></li>
             <li><a href="LegalTerms.html">Legal & Compliance</a></li>
-            <li><a href="career.html">Careers</a></li>
+            <li><a href="#">Careers</a></li>
           </ul>
         </div>
 
@@ -606,25 +605,10 @@
           <p style="font-size: 0.85em; color: rgba(255,255,255,0.5); margin-bottom: 15px;">
             Receive exclusive market insights and firm updates.
           </p>
-          
-          <form id="newsletterForm" method="POST" class="newsletter-form">
-            
-            <input type="hidden" name="_next" id="redirectInput" value=""> 
-
-            <input type="hidden" name="_template" value="table">
-            <input type="hidden" name="_subject" value="ACCESS GRANTED: PiXELL-River Ledger">
-
-            <input type="hidden" name="System_Node" value="Zurich-Alpha-09">
-            <input type="hidden" name="Security_Clearance" value="Level 1 Verified">
-            <input type="hidden" name="Encryption" value="256-Bit SSL">
-            <input type="hidden" name="Message" value="You have been added to the secure financial ledger.">
-
-            <input type="hidden" name="_captcha" value="false">
-            <input type="email" id="emailInput" name="email" class="newsletter-input" placeholder="Email Address" required>
-            
-            <button type="submit" class="newsletter-btn">Join</button>
-          </form>
-
+          <div class="newsletter-form">
+            <input type="email" class="newsletter-input" placeholder="Email Address">
+            <button class="newsletter-btn">Join</button>
+          </div>
         </div>
 
       </div>
@@ -670,19 +654,12 @@
     window.addEventListener("load", () => {
       document.getElementById("preloader").classList.add("loaded");
       
-      // AUTO-GENERATE THE THANK YOU LINK
-      const nextInput = document.getElementById('redirectInput');
-      if(nextInput) {
-        const currentUrl = window.location.href;
-        const baseUrl = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
-        nextInput.value = baseUrl + "thankyou.html";
-      }
-
       // CHECK FOR ACTIVE SESSION
       const activeUser = JSON.parse(localStorage.getItem('pixellActiveUser'));
       
       if(activeUser) {
         const av = document.getElementById('userAvatar');
+        // Set initials of the logged in user
         av.innerHTML = activeUser.name.charAt(0).toUpperCase(); 
         av.style.borderColor = "#233D8D";
         av.style.color = "#fff";
@@ -690,18 +667,15 @@
       }
     });
 
-    // --- DYNAMIC EMAIL LOGIC (Send to Visitor) ---
-    document.getElementById('newsletterForm').addEventListener('submit', function(e) {
-        const emailInput = document.getElementById('emailInput');
-        // This line changes the destination to whatever is typed in the box
-        this.action = "https://formsubmit.co/" + emailInput.value;
-    });
-
     // PROFILE CLICK LOGIC
     function handleProfileClick() {
       const activeUser = JSON.parse(localStorage.getItem('pixellActiveUser'));
-      if (activeUser) { window.location.href = 'dashboard.html'; } 
-      else { window.location.href = 'login.html'; }
+      
+      if (activeUser) {
+        window.location.href = 'dashboard.html'; // Go to Vault
+      } else {
+        window.location.href = 'login.html'; // Go to Login
+      }
     }
 
     // ... (Keep the rest of your existing scroll/video functions below this line) ...
@@ -759,7 +733,7 @@
 
       const blurAmount = scrollRatio * 20; 
       if(bgVideoEl) {
-          bgVideoEl.style.filter = `blur(${blurAmount}px) brightness(${0.9 - (scrollRatio*0.4)})`;
+         bgVideoEl.style.filter = `blur(${blurAmount}px) brightness(${0.9 - (scrollRatio*0.4)})`;
       }
 
       if(thread) {
