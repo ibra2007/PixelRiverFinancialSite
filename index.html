@@ -102,14 +102,20 @@
       position: relative; height: 100vh; width: 100%;
       display: flex; flex-direction: column; align-items: center; justify-content: center;
       z-index: 1;
+      /* FIX: Allow clicks to pass through the container to elements below if needed, 
+         but re-enable pointer-events on children */
+      pointer-events: none; 
+    }
+
+    /* Re-enable clicks on interactive elements inside hero */
+    .hero-content, .dive-deeper-wrap, .logo-top-left, .user-account-icon, .menu-btn-scroll {
+      pointer-events: auto;
     }
 
     .hero-content { 
       text-align: center; 
       text-shadow: 0 2px 24px #00131c66; 
-      overflow: hidden;
-      position: relative; 
-      z-index: 10; /* Lower than dive button */
+      overflow: hidden; 
     }
     
     .main-headline {
@@ -135,7 +141,7 @@
     }
     @keyframes fadeIn { to { opacity: 1; } }
     
-    /* --- DIVE DEEPER (FIXED) --- */
+    /* --- DIVE DEEPER --- */
     .dive-deeper-wrap {
       position: absolute; 
       bottom: 50px; 
@@ -143,9 +149,8 @@
       display: flex; flex-direction: column; align-items: center;
       transition: opacity 0.3s; 
       padding: 20px;
-      z-index: 500; /* High Z-Index ensures clickable */
+      z-index: 100; /* Increased Z-Index to ensure it sits on top */
       cursor: pointer;
-      pointer-events: auto; /* Forces click to register */
     }
 
     .dive-deeper-wrap:hover .dive-title { color: #fff; }
@@ -558,7 +563,7 @@
 
       <div class="journal-card visible animate-on-scroll" style="margin-top: 80px;" onclick="openModal('meme')">
         <div class="media-frame meme-frame hover-trigger">
-          <img class="media-img" src="CatMeme.png" alt="Meme">
+          <img class="media-img" src="cat.png" alt="Meme">
         </div>
         <div class="journal-info">
           <span class="meta-tag">Culture & Insight</span>
