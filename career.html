@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Careers - PiXELL-River</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css?family=Playfair+Display:400,600,700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* 1. GLOBAL SETTINGS (Matches Theme) */
+    html { scroll-behavior: smooth; cursor: none; }
+    
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #9E7F63; opacity: 0.8; }
+
+    ::selection { background: #233D8D; color: #fff; }
+
+    html, body {
+      margin: 0; padding: 0;
+      font-family: 'Playfair Display', serif;
+      color: #9E7F63; 
+      /* Deep Royal Navy Gradient */
+      background: linear-gradient(to bottom, #111c36 0%, #050810 100%);
+      min-height: 100vh;
+    }
+
+    /* --- TEXTURE & PRELOADER --- */
+    .noise-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 8000; opacity: 0.06; 
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
+    }
+
+    .preloader {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #0d1620; z-index: 99999;
+      display: flex; justify-content: center; align-items: center;
+      transition: transform 0.8s cubic-bezier(0.7, 0, 0.3, 1);
+    }
+    .loader-text {
+      font-size: 1.5em; letter-spacing: 0.5em; color: #f8d9bc;
+      text-transform: uppercase; animation: pulse 2s infinite;
+    }
+    .preloader.loaded { transform: translateY(-100%); }
+
+    /* --- CURSOR --- */
+    .cursor-dot, .cursor-outline {
+      position: fixed; top: 0; left: 0;
+      transform: translate(-50%, -50%);
+      border-radius: 50%; z-index: 200000; pointer-events: none;
+    }
+    .cursor-dot { width: 8px; height: 8px; background-color: #f8d9bc; }
+    .cursor-outline {
+      width: 40px; height: 40px;
+      border: 1px solid rgba(248, 217, 188, 0.5);
+      transition: width 0.2s, height 0.2s, background-color 0.2s;
+    }
+    body.hovering .cursor-outline {
+      width: 70px; height: 70px;
+      background-color: rgba(248, 217, 188, 0.1);
+      border-color: transparent; backdrop-filter: blur(2px);
+    }
+
+    /* --- NAV MENU --- */
+    .logo-top-left {
+      position: absolute !important; top: 22px; left: 22px; height: 98px; width: auto;
+      z-index: 9999; filter: drop-shadow(0 2px 16px #1f93ff51); transition: transform 0.2s; cursor: none;
+    }
+    .menu-btn-scroll {
+      position: absolute !important; top: 40px; right: 42px;
+      font-family: inherit; background: transparent; color: #f8d9bc;
+      border: 1px solid rgba(248, 217, 188, 0.3);
+      font-size: 0.9em; letter-spacing: 0.25em; font-weight: 600;
+      z-index: 9999; text-transform: uppercase; padding: 12px 28px; border-radius: 50px; 
+      backdrop-filter: blur(4px); transition: all 0.3s ease; cursor: none; 
+    }
+    .menu-btn-fixed {
+      position: absolute; top: 40px; right: 42px;
+      font-family: inherit; background: transparent; 
+      color: #fff; border: 1px solid #fff; 
+      font-size: 0.9em; letter-spacing: 0.25em; font-weight: 600;
+      text-transform: uppercase; padding: 12px 28px; border-radius: 50px; cursor: none; 
+    }
+    body.nav-active .menu-btn-scroll { opacity: 0; pointer-events: none; }
+
+    .main-nav {
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      gap: 40px; position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;
+      background: rgba(13, 22, 32, 0.96); backdrop-filter: blur(10px);
+      z-index: 9000; transform: translateY(-100%); opacity: 0; pointer-events: none;
+      transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.4s;
+    }
+    .main-nav.open { transform: translateY(0%); opacity: 1; pointer-events: auto; }
+    .main-nav .nav-link {
+      font-size: 3rem; color: #f8d9bc; text-decoration: none;
+      opacity: 0; transform: translateY(20px);
+      transition: all 0.4s ease; font-family: inherit; font-weight: 300; letter-spacing: 0.05em;
+    }
+    .main-nav.open .nav-link { opacity: 0.7; transform: translateY(0); }
+    .main-nav .nav-link:hover { opacity: 1; color: #fff; font-style: italic; letter-spacing: 0.1em; transform: translateX(20px); }
+
+    /* --- PAGE HEADER --- */
+    .hero-wrapper {
+      position: relative; height: 60vh;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      text-align: center; margin-top: 80px;
+    }
+    .page-title {
+      font-size: 10vw; line-height: 1; color: #9E7F63; margin: 0;
+      opacity: 0; transform: translateY(50px);
+      animation: fadeInUp 1s cubic-bezier(0.2, 1, 0.3, 1) forwards 0.5s;
+    }
+    .subtitle-txt {
+      font-size: 1.2em; color: #f8d9bc; letter-spacing: 0.2em; text-transform: uppercase;
+      margin-top: 20px; opacity: 0; animation: fadeIn 1s ease forwards 0.8s;
+    }
+    .vertical-line { width: 1px; height: 80px; background: #9E7F63; margin: 40px auto; opacity: 0.5; }
+
+    /* --- CAREER LEDGER (JOB LIST) --- */
+    .career-container {
+      max-width: 1200px; margin: 0 auto; padding: 50px 20px 150px 20px;
+      position: relative; z-index: 10;
+    }
+
+    .section-title {
+      font-size: 2.5em; color: #fff;
+      border-left: 2px solid #233D8D; padding-left: 30px; margin-bottom: 60px;
+    }
+
+    .job-row {
+      display: grid; 
+      grid-template-columns: 2fr 1fr 1fr 0.5fr;
+      align-items: center;
+      padding: 35px 20px;
+      border-bottom: 1px solid rgba(158, 127, 99, 0.2);
+      transition: all 0.4s ease;
+      cursor: none;
+      position: relative;
+    }
+    
+    .job-row:hover {
+      background: rgba(35, 61, 141, 0.1);
+      padding-left: 40px;
+      border-bottom-color: #233D8D;
+    }
+
+    .job-title { font-size: 1.5em; color: #fff; font-weight: 400; }
+    .job-dept { font-family: 'Inter', sans-serif; color: #9E7F63; text-transform: uppercase; font-size: 0.85em; letter-spacing: 0.1em; }
+    .job-loc { font-family: 'Inter', sans-serif; color: rgba(255,255,255,0.6); }
+    .apply-arrow { font-size: 1.5em; color: #233D8D; opacity: 0; transition: opacity 0.3s, transform 0.3s; }
+    
+    .job-row:hover .apply-arrow { opacity: 1; transform: translateX(10px); }
+
+    /* --- CULTURE SECTION (Glass Cards) --- */
+    .culture-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px;
+      margin-top: 100px; margin-bottom: 100px;
+    }
+    .culture-card {
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(158, 127, 99, 0.1);
+      padding: 40px; transition: transform 0.4s ease;
+    }
+    .culture-card:hover { transform: translateY(-10px); border-color: #233D8D; }
+    
+    .culture-icon { font-size: 2em; color: #233D8D; margin-bottom: 20px; }
+    .culture-head { font-size: 1.2em; color: #fff; margin-bottom: 10px; letter-spacing: 0.05em; }
+    .culture-txt { font-family: 'Inter', sans-serif; font-size: 0.95em; line-height: 1.6; color: #ccc; }
+
+    /* --- MEGA FOOTER (COPIED FROM INDEX) --- */
+    .mega-footer {
+      position: relative; z-index: 10;
+      background: #02040a;
+      border-top: 1px solid rgba(158, 127, 99, 0.2);
+      padding: 80px 50px 30px 50px;
+      color: #9E7F63;
+      font-family: 'Inter', sans-serif;
+    }
+    .footer-content { display: grid; grid-template-columns: 1.5fr 1fr 1fr 1.5fr; gap: 40px; margin-bottom: 60px; }
+    .footer-brand h2 { font-family: 'Playfair Display', serif; color: #fff; margin: 0 0 20px 0; }
+    .footer-tagline { font-size: 0.9em; line-height: 1.6; color: rgba(255,255,255,0.6); max-width: 300px; }
+    .footer-col h3 { font-size: 0.85em; text-transform: uppercase; letter-spacing: 0.2em; color: #fff; margin-bottom: 25px; opacity: 0.8; }
+    .footer-links { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 15px; }
+    .footer-links li a { color: rgba(255,255,255,0.5); text-decoration: none; font-size: 0.9em; transition: color 0.3s; }
+    .footer-links li a:hover { color: #233D8D; }
+    .footer-bottom { border-top: 1px solid rgba(255,255,255,0.05); padding-top: 30px; display: flex; justify-content: space-between; align-items: flex-end; font-size: 0.75em; color: rgba(255,255,255,0.3); }
+    .student-credits { text-align: right; font-family: 'Inter', monospace; color: #5b6e82; line-height: 1.6; }
+    .student-credits span { color: #9E7F63; }
+
+    @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { to { opacity: 1; } }
+
+    @media (max-width: 900px) {
+      .page-title { font-size: 15vw; }
+      .job-row { grid-template-columns: 1fr; gap: 10px; }
+      .footer-content { grid-template-columns: 1fr; gap: 50px; }
+      .footer-bottom { flex-direction: column; gap: 20px; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="noise-overlay"></div>
+  <div class="preloader" id="preloader">
+    <div class="loader-text">Recruiting...</div>
+  </div>
+
+  <div class="cursor-dot" data-cursor-dot></div>
+  <div class="cursor-outline" data-cursor-outline></div>
+
+  <!-- NAV MENU -->
+  <nav class="main-nav" id="mainNav">
+    <button class="menu-btn-fixed hover-trigger magnetic" onclick="toggleNav()">CLOSE</button>
+    <a href="index.html" class="nav-link hover-trigger" onclick="toggleNav()">Home</a>
+    <a href="about.html" class="nav-link hover-trigger" onclick="toggleNav()">About</a>
+    <a href="LegalTerms.html" class="nav-link hover-trigger" onclick="toggleNav()">Legal & Terms</a>
+    <a href="#" class="nav-link hover-trigger" onclick="toggleNav()">Careers</a>
+    <a href="login.html" class="nav-link hover-trigger">Login/Signup</a>
+  </nav>
+
+  <!-- HEADER -->
+  <img src="PixellRiverLogo.png" alt="Pixell River Logo" class="logo-top-left hover-trigger" id="logoImg" onclick="window.location.href='index.html'" />
+  <button class="menu-btn-scroll hover-trigger magnetic" id="scrollMenuBtn" onclick="toggleNav()">MENU</button>
+
+  <!-- HERO -->
+  <div class="hero-wrapper">
+    <h1 class="page-title">Join the Legacy</h1>
+    <div class="subtitle-txt">Excellence. Strategy. Future.</div>
+  </div>
+
+  <div class="vertical-line"></div>
+
+  <!-- MAIN CONTENT -->
+  <div class="career-container">
+
+    <!-- 1. OPEN POSITIONS LEDGER -->
+    <div class="section-block animate-on-scroll">
+      <h2 class="section-title">Open Positions</h2>
+      
+      <div class="job-list">
+        
+        <!-- JOB 1 -->
+        <div class="job-row hover-trigger" onclick="applyJob('Wealth Strategist')">
+          <div class="job-title">Private Wealth Strategist</div>
+          <div class="job-dept">Client Services</div>
+          <div class="job-loc">London, UK</div>
+          <div class="apply-arrow">→</div>
+        </div>
+
+        <!-- JOB 2 -->
+        <div class="job-row hover-trigger" onclick="applyJob('Quantitative Analyst')">
+          <div class="job-title">Senior Quantitative Analyst</div>
+          <div class="job-dept">Investment</div>
+          <div class="job-loc">New York, USA</div>
+          <div class="apply-arrow">→</div>
+        </div>
+
+        <!-- JOB 3 -->
+        <div class="job-row hover-trigger" onclick="applyJob('Cybersecurity Lead')">
+          <div class="job-title">Cybersecurity Lead</div>
+          <div class="job-dept">Technology</div>
+          <div class="job-loc">Zürich, CH</div>
+          <div class="apply-arrow">→</div>
+        </div>
+
+        <!-- JOB 4 -->
+        <div class="job-row hover-trigger" onclick="applyJob('Brand Director')">
+          <div class="job-title">Global Brand Director</div>
+          <div class="job-dept">Marketing</div>
+          <div class="job-loc">Remote / Singapore</div>
+          <div class="apply-arrow">→</div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- 2. CULTURE GRID -->
+    <div class="culture-grid animate-on-scroll">
+      <div class="culture-card hover-trigger">
+        <div class="culture-icon"><i class="fa-solid fa-globe"></i></div>
+        <div class="culture-head">Global Impact</div>
+        <div class="culture-txt">Work on financial strategies that shape markets across three continents.</div>
+      </div>
+      <div class="culture-card hover-trigger">
+        <div class="culture-icon"><i class="fa-solid fa-gem"></i></div>
+        <div class="culture-head">Premium Standards</div>
+        <div class="culture-txt">We accept nothing less than excellence in our code, our design, and our service.</div>
+      </div>
+      <div class="culture-card hover-trigger">
+        <div class="culture-icon"><i class="fa-solid fa-chart-line"></i></div>
+        <div class="culture-head">Rapid Growth</div>
+        <div class="culture-txt">Accelerated career paths for those who demonstrate vision and capability.</div>
+      </div>
+    </div>
+
+    <!-- FOOTER -->
+    <footer class="mega-footer">
+      <div class="footer-content">
+        <div class="footer-brand">
+          <h2>PiXELL-River</h2>
+          <p class="footer-tagline">
+            Integrating wealth strategy with digital precision. 
+            Serving the next generation of global capital.
+          </p>
+        </div>
+        <div class="footer-col">
+          <h3>Locations</h3>
+          <ul class="footer-links">
+            <li><a href="locations.html?city=zurich">Zürich, CH</a></li>
+            <li><a href="locations.html?city=london">London, UK</a></li>
+            <li><a href="locations.html?city=sg">Singapore, SG</a></li>
+            <li><a href="locations.html?city=ny">New York, USA</a></li>
+			<li><a href="locations.html?city=tokyo">Tokyo, Japan</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3>Company</h3>
+          <ul class="footer-links">
+            <li><a href="about.html">Our Vision</a></li>
+            <li><a href="dashboard.html">Client Portal</a></li>
+            <li><a href="LegalTerms.html">Legal & Compliance</a></li>
+            <li><a href="#">Careers</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h3>The Ledger</h3>
+          <p style="font-size: 0.85em; color: rgba(255,255,255,0.5); margin-bottom: 15px;">
+            Receive exclusive market insights and firm updates.
+          </p>
+          <div class="newsletter-form">
+            <input type="email" class="newsletter-input" placeholder="Email Address">
+            <button class="newsletter-btn">Join</button>
+          </div>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <div class="copyright">
+          &copy; 2025 PiXELL-River Financial. All Rights Reserved.
+        </div>
+        <div class="student-credits">
+          Developed by <span>Anel Ibrahimovic Milas</span><br>
+          Port: 8080 · Class Section: 268724
+        </div>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    // 1. Preloader
+    window.addEventListener("load", () => {
+      document.getElementById("preloader").classList.add("loaded");
+    });
+
+    // 2. Custom Cursor
+    const cursorDot = document.querySelector('[data-cursor-dot]');
+    const cursorOutline = document.querySelector('[data-cursor-outline]');
+
+    window.addEventListener('mousemove', function(e) {
+      const posX = e.clientX; const posY = e.clientY;
+      cursorDot.style.left = `${posX}px`; cursorDot.style.top = `${posY}px`;
+      cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 500, fill: "forwards" });
+    });
+
+    document.querySelectorAll('.hover-trigger').forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+    });
+
+    // 3. Magnetic Buttons
+    const magneticBtns = document.querySelectorAll('.magnetic');
+    magneticBtns.forEach(btn => {
+      btn.addEventListener('mousemove', function(e) {
+        const rect = btn.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+      });
+      btn.addEventListener('mouseleave', function() {
+        btn.style.transform = `translate(0px, 0px)`;
+      });
+    });
+
+    // 4. Menu Toggle
+    function toggleNav() {
+      const nav = document.getElementById('mainNav');
+      nav.classList.toggle('open');
+      document.body.classList.toggle('nav-active');
+    }
+
+    // 5. Job Application Logic (Demo)
+    function applyJob(role) {
+      alert(`Application initiated for: ${role}\n\n(Demo: In a real site, this would open an application form)`);
+    }
+
+    // 6. Scroll Animations
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    
+    document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>

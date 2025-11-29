@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Legal & Terms - PiXELL-River</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css?family=Playfair+Display:400,500,600,700,900&display=swap" rel="stylesheet">
+  <style>
+    /* 1. GLOBAL SETTINGS */
+    html { scroll-behavior: smooth; cursor: none; }
+    
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #9E7F63; border-radius: 0; opacity: 0.8; }
+    ::-webkit-scrollbar-thumb:hover { background: #c4a78b; width: 5px; }
+
+    ::selection { background: #233D8D; color: #fff; }
+    ::-moz-selection { background: #233D8D; color: #fff; }
+
+    html, body {
+      margin: 0; padding: 0;
+      font-family: 'Playfair Display', serif;
+      color: #9E7F63; 
+      /* Deep Royal Navy Gradient */
+      background: linear-gradient(to bottom, #111c36 0%, #050810 100%);
+      letter-spacing: 0.01em; overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* --- TEXTURE & PRELOADER --- */
+    .noise-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 8000; opacity: 0.06; 
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
+    }
+
+    .preloader {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #0d1620; z-index: 99999;
+      display: flex; justify-content: center; align-items: center;
+      transition: transform 0.8s cubic-bezier(0.7, 0, 0.3, 1);
+    }
+    .loader-text {
+      font-size: 1.5em; letter-spacing: 0.5em; color: #f8d9bc;
+      text-transform: uppercase; animation: pulse 2s infinite;
+    }
+    .preloader.loaded { transform: translateY(-100%); }
+
+    /* --- CURSOR --- */
+    .cursor-dot, .cursor-outline {
+      position: fixed; top: 0; left: 0;
+      transform: translate(-50%, -50%);
+      border-radius: 50%; z-index: 200000; pointer-events: none;
+    }
+    .cursor-dot { width: 8px; height: 8px; background-color: #f8d9bc; }
+    .cursor-outline {
+      width: 40px; height: 40px;
+      border: 1px solid rgba(248, 217, 188, 0.5);
+      transition: width 0.2s, height 0.2s, background-color 0.2s;
+    }
+    body.hovering .cursor-outline {
+      width: 70px; height: 70px;
+      background-color: rgba(248, 217, 188, 0.1);
+      border-color: transparent; backdrop-filter: blur(2px);
+    }
+
+    /* --- HEADER / NAVIGATION --- */
+    .logo-top-left {
+      position: absolute !important; top: 22px; left: 22px; height: 98px; width: auto;
+      z-index: 9999; filter: drop-shadow(0 2px 16px #1f93ff51); transition: transform 0.2s; cursor: none;
+    }
+
+    .menu-btn-scroll {
+      position: absolute !important; top: 40px; right: 42px;
+      font-family: inherit; background: transparent; color: #f8d9bc;
+      border: 1px solid rgba(248, 217, 188, 0.3);
+      font-size: 0.9em; letter-spacing: 0.25em; font-weight: 600;
+      z-index: 9999; text-transform: uppercase; padding: 12px 28px; border-radius: 50px; 
+      backdrop-filter: blur(4px); transition: all 0.3s ease; cursor: none; 
+    }
+    .menu-btn-fixed {
+      position: absolute; top: 40px; right: 42px;
+      font-family: inherit; background: transparent; 
+      color: #fff; border: 1px solid #fff; 
+      font-size: 0.9em; letter-spacing: 0.25em; font-weight: 600;
+      text-transform: uppercase; padding: 12px 28px; border-radius: 50px; cursor: none; 
+    }
+    body.nav-active .menu-btn-scroll { opacity: 0; pointer-events: none; }
+
+    .main-nav {
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      gap: 40px; position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;
+      background: rgba(13, 22, 32, 0.96); backdrop-filter: blur(10px);
+      z-index: 9000; transform: translateY(-100%); opacity: 0; pointer-events: none;
+      transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.4s;
+    }
+    .main-nav.open { transform: translateY(0%); opacity: 1; pointer-events: auto; }
+    .main-nav .nav-link {
+      font-size: 3rem; color: #f8d9bc; text-decoration: none;
+      opacity: 0; transform: translateY(20px);
+      transition: all 0.4s ease; font-family: inherit; font-weight: 300; letter-spacing: 0.05em;
+    }
+    .main-nav.open .nav-link { opacity: 0.7; transform: translateY(0); }
+    .main-nav .nav-link:hover { opacity: 1; color: #fff; font-style: italic; letter-spacing: 0.1em; transform: translateX(20px); }
+
+    /* --- LEGAL PAGE SPECIFIC STYLES --- */
+    
+    .legal-header {
+      text-align: center;
+      margin-top: 180px;
+      margin-bottom: 60px;
+      position: relative;
+      z-index: 10;
+    }
+    
+    .page-headline {
+      font-size: 5vw;
+      color: #9E7F63;
+      margin: 0;
+      opacity: 0;
+      animation: fadeUp 1s ease forwards 0.5s;
+    }
+    
+    .sub-headline {
+      color: #233D8D; /* Sapphire */
+      font-size: 1em;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-top: 10px;
+      opacity: 0;
+      animation: fadeUp 1s ease forwards 0.7s;
+    }
+
+    .legal-container {
+      max-width: 800px;
+      margin: 0 auto 100px auto;
+      position: relative;
+      z-index: 10;
+      padding: 0 20px;
+    }
+
+    /* THE CONTRACT PAPER STYLE */
+    .legal-doc {
+      background: rgba(255, 255, 255, 0.02); /* Barely visible glass */
+      border: 1px solid rgba(158, 127, 99, 0.2); /* Faint Gold Border */
+      padding: 60px;
+      box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+      opacity: 0;
+      transform: translateY(50px);
+      animation: fadeUp 1s cubic-bezier(0.2, 1, 0.3, 1) forwards 1s;
+    }
+
+    /* Drop Cap for the first letter "L" */
+    .legal-doc::first-letter {
+      float: left;
+      font-size: 5em;
+      line-height: 0.8;
+      font-weight: 700;
+      color: #9E7F63;
+      margin-right: 15px;
+      margin-top: 5px;
+    }
+
+    /* CLAUSE STYLING */
+    .clause {
+      margin-bottom: 40px;
+      color: #c4a78b; /* Lighter brown text */
+      font-family: sans-serif; /* Contract font */
+      font-size: 1.05em;
+      line-height: 1.8;
+      border-left: 2px solid transparent;
+      padding-left: 20px;
+      transition: all 0.3s ease;
+    }
+
+    /* Interactive Hover Effect */
+    .clause:hover {
+      border-left: 2px solid #233D8D; /* Sapphire Highlight */
+      color: #fff;
+      background: linear-gradient(to right, rgba(35, 61, 141, 0.1), transparent);
+    }
+
+    .clause strong {
+      color: #fff;
+      display: block;
+      margin-bottom: 10px;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2em;
+      letter-spacing: 0.05em;
+    }
+
+    /* Bottom Signature Line */
+    .signature-line {
+      margin-top: 80px;
+      border-top: 1px solid #9E7F63;
+      width: 200px;
+      padding-top: 10px;
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      color: #5b6e82;
+      font-size: 0.9em;
+    }
+
+    footer { text-align: center; color: #5b6e82; font-size: 0.8em; letter-spacing: 0.2em; text-transform: uppercase; padding-bottom: 40px; }
+
+    @keyframes fadeUp {
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      .page-headline { font-size: 12vw; }
+      .legal-doc { padding: 30px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="noise-overlay"></div>
+  <div class="preloader" id="preloader">
+    <div class="loader-text">Loading</div>
+  </div>
+
+  <div class="cursor-dot" data-cursor-dot></div>
+  <div class="cursor-outline" data-cursor-outline></div>
+
+  <nav class="main-nav" id="mainNav">
+    <button class="menu-btn-fixed hover-trigger magnetic" onclick="toggleNav()">CLOSE</button>
+    <a href="index.html" class="nav-link hover-trigger" onclick="toggleNav()">Home</a>
+    <a href="about.html" class="nav-link hover-trigger" onclick="toggleNav()">About</a>
+    <a href="#" class="nav-link hover-trigger" onclick="toggleNav()">Legal & Terms</a>
+    <a href="login.html" class="nav-link hover-trigger">Login/Signup</a>
+  </nav>
+
+  <img src="PixellRiverLogo.png" alt="Pixell River Logo" class="logo-top-left hover-trigger" id="logoImg" onclick="window.location.href='index.html'" />
+  <button class="menu-btn-scroll hover-trigger magnetic" id="scrollMenuBtn" onclick="toggleNav()">MENU</button>
+
+  <div class="legal-header">
+    <h1 class="page-headline">Legal & Terms</h1>
+    <div class="sub-headline">Framework of Trust</div>
+  </div>
+
+  <div class="legal-container">
+    <div class="legal-doc">
+      
+      <div class="clause hover-trigger">
+        <strong>Legal Disclaimer</strong>
+        PiXELL-River makes no guarantees or assurances regarding the accuracy, completeness, or suitability of the information provided on this site. All content is provided on an “as is” basis for educational or informational purposes only. Users acknowledge that any reliance on the information is at their own risk.
+      </div>
+
+      <div class="clause hover-trigger">
+        <strong>Limitation of Liability</strong>
+        PiXELL-River disclaims all liability for any direct, incidental, consequential, or punitive damages arising from the use or inability to use the site or any linked resources. The site may contain links to external websites; however, PiXELL-River does not endorse or assume responsibility for the content, products, or services offered on these external sites.
+      </div>
+
+      <div class="clause hover-trigger">
+        <strong>Fictitious Nature</strong>
+        All financial data, advice, and tools available on this site are fictitious and meant for demonstration purposes only. PiXELL-River is not a licensed financial advisor and does not provide professional investment or legal advice. Users should consult qualified professionals before making financial decisions.
+      </div>
+
+      <div class="clause hover-trigger">
+        <strong>Indemnification</strong>
+        By accessing or using this website, you agree to indemnify, defend, and hold harmless PiXELL-River, its affiliates, and employees from any claims, damages, or losses arising out of your use of the site.
+      </div>
+
+      <div class="clause hover-trigger">
+        <strong>Modifications</strong>
+        PiXELL-River reserves the right to modify these terms and the content of the website at any time without prior notice. Continued use of the website constitutes acceptance of any changes.
+      </div>
+
+      <div class="signature-line">
+        PiXELL-River Financial
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    Anel Ibrahimovic Milas <br /> Port: 8080 Class Section: 268724 <br /><br />
+    &copy; 2025 PiXELL-River Financial
+  </footer>
+
+  <script>
+    // 1. Preloader
+    window.addEventListener("load", () => {
+      document.getElementById("preloader").classList.add("loaded");
+    });
+
+    // 2. Custom Cursor
+    const cursorDot = document.querySelector('[data-cursor-dot]');
+    const cursorOutline = document.querySelector('[data-cursor-outline]');
+
+    window.addEventListener('mousemove', function(e) {
+      const posX = e.clientX; const posY = e.clientY;
+      cursorDot.style.left = `${posX}px`; cursorDot.style.top = `${posY}px`;
+      cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 500, fill: "forwards" });
+    });
+
+    document.querySelectorAll('.hover-trigger').forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+    });
+
+    // 3. Magnetic Buttons
+    const magneticBtns = document.querySelectorAll('.magnetic');
+    magneticBtns.forEach(btn => {
+      btn.addEventListener('mousemove', function(e) {
+        const rect = btn.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+      });
+      btn.addEventListener('mouseleave', function() {
+        btn.style.transform = `translate(0px, 0px)`;
+      });
+    });
+
+    // 4. Menu Toggle
+    function toggleNav() {
+      const nav = document.getElementById('mainNav');
+      nav.classList.toggle('open');
+      document.body.classList.toggle('nav-active');
+    }
+  </script>
+</body>
+</html>

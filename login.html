@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Access - PiXELL-River</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css?family=Playfair+Display:400,600,700&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  
+  <style>
+    /* 1. GLOBAL SETTINGS */
+    html { scroll-behavior: smooth; cursor: none; }
+    
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #9E7F63; opacity: 0.8; }
+
+    ::selection { background: #233D8D; color: #fff; }
+
+    html, body {
+      height: 100%; margin: 0; padding: 0;
+      font-family: 'Playfair Display', serif;
+      color: #9E7F63; 
+      background: linear-gradient(to bottom, #111c36 0%, #050810 100%);
+      overflow: hidden; /* Lock scroll for login page */
+    }
+
+    /* --- TEXTURE --- */
+    .noise-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; 
+      z-index: 8000; 
+      opacity: 0.06; 
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
+    }
+
+    /* --- PRELOADER --- */
+    .preloader {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #0d1620; z-index: 99999;
+      display: flex; justify-content: center; align-items: center;
+      transition: transform 0.8s cubic-bezier(0.7, 0, 0.3, 1);
+    }
+    .loader-text {
+      font-size: 1.5em; letter-spacing: 0.5em; color: #f8d9bc;
+      text-transform: uppercase; animation: pulse 2s infinite;
+    }
+    .preloader.loaded { transform: translateY(-100%); }
+
+    /* --- CURSOR --- */
+    .cursor-dot, .cursor-outline {
+      position: fixed; top: 0; left: 0;
+      transform: translate(-50%, -50%);
+      border-radius: 50%; z-index: 200000; pointer-events: none;
+    }
+    .cursor-dot { width: 8px; height: 8px; background-color: #f8d9bc; }
+    .cursor-outline {
+      width: 40px; height: 40px;
+      border: 1px solid rgba(248, 217, 188, 0.5);
+      transition: width 0.2s, height 0.2s, background-color 0.2s;
+    }
+    body.hovering .cursor-outline {
+      width: 70px; height: 70px;
+      background-color: rgba(248, 217, 188, 0.1);
+      border-color: transparent; backdrop-filter: blur(2px);
+    }
+
+    /* --- NAV MENU & LOGO --- */
+    .logo-top-left {
+      position: fixed; 
+      top: 22px; left: 22px; height: 98px; width: auto;
+      z-index: 9999; 
+      filter: drop-shadow(0 2px 16px #1f93ff51); 
+      cursor: pointer;
+    }
+
+    /* FIXED MENU BUTTON FOR LOGIN PAGE */
+    .menu-btn-static {
+      position: fixed; 
+      top: 40px; right: 42px;
+      font-family: inherit; background: transparent; color: #f8d9bc;
+      border: 1px solid rgba(248, 217, 188, 0.3);
+      font-size: 0.9em; letter-spacing: 0.25em; font-weight: 600;
+      z-index: 9999; /* Must be higher than noise (8000) but lower than nav overlay (10000) */
+      text-transform: uppercase; padding: 12px 28px; border-radius: 50px; 
+      backdrop-filter: blur(4px); transition: all 0.3s ease; 
+      cursor: pointer;
+    }
+    .menu-btn-static:hover {
+      background: #9E7F63; color: #000; border-color: #9E7F63;
+    }
+
+    /* Navigation Overlay */
+    .main-nav {
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      gap: 40px; position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;
+      background: rgba(13, 22, 32, 0.96); backdrop-filter: blur(10px);
+      
+      /* FIX: INCREASED Z-INDEX TO COVER THE STATIC BUTTON */
+      z-index: 10000; 
+      
+      transform: translateY(-100%); opacity: 0; pointer-events: none;
+      transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.4s;
+    }
+    .main-nav.open { transform: translateY(0%); opacity: 1; pointer-events: auto; }
+    
+    .main-nav .nav-link {
+      font-size: 3rem; color: #f8d9bc; text-decoration: none;
+      opacity: 0; transform: translateY(20px);
+      transition: all 0.4s ease; font-family: inherit; font-weight: 300; letter-spacing: 0.05em;
+    }
+    .main-nav.open .nav-link { opacity: 0.7; transform: translateY(0); }
+    .main-nav .nav-link:hover { opacity: 1; color: #fff; font-style: italic; letter-spacing: 0.1em; transform: translateX(20px); }
+    
+    /* Close Button inside Nav */
+    .menu-btn-fixed {
+      position: absolute; top: 40px; right: 42px;
+      font-family: inherit; background: transparent; color: #fff; border: 1px solid #fff; 
+      font-size: 0.9em; letter-spacing: 0.25em; font-weight: 600;
+      text-transform: uppercase; padding: 12px 28px; border-radius: 50px; cursor: pointer; 
+    }
+
+    /* --- 3D AUTH CONTAINER --- */
+    .auth-wrapper {
+      display: flex; justify-content: center; align-items: center;
+      height: 100vh; width: 100%;
+      perspective: 1000px; 
+      z-index: 50; 
+      position: relative;
+    }
+
+    .card-3d {
+      width: 400px; min-height: 580px;
+      position: relative;
+      transform-style: preserve-3d; 
+      transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    .card-3d.flipped { transform: rotateY(180deg); }
+
+    .card-face {
+      position: absolute; width: 100%; height: 100%;
+      backface-visibility: hidden; 
+      -webkit-backface-visibility: hidden;
+      border-radius: 4px;
+      padding: 40px 35px; box-sizing: border-box;
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      background: rgba(13, 22, 32, 0.7);
+      border: 1px solid #9E7F63; 
+      box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+      backdrop-filter: blur(15px);
+    }
+
+    .card-face-back { transform: rotateY(180deg); }
+
+    /* --- FORM STYLING --- */
+    .auth-header { margin-bottom: 30px; text-align: center; }
+    .auth-title { font-size: 2rem; margin: 0; color: #fff; letter-spacing: 0.05em; }
+    .auth-subtitle { font-size: 0.9rem; color: #c4a78b; font-family: 'Inter', sans-serif; margin-top: 5px; text-transform: uppercase; letter-spacing: 0.15em; }
+
+    .input-group { position: relative; width: 100%; margin-bottom: 25px; }
+    
+    .auth-input {
+      width: 100%; padding: 10px 5px;
+      background: transparent; border: none;
+      border-bottom: 1px solid rgba(158, 127, 99, 0.5);
+      color: #fff; font-family: 'Inter', sans-serif; font-size: 1rem;
+      outline: none; transition: border-color 0.3s;
+    }
+    .auth-input:focus { border-bottom-color: #233D8D; }
+    .auth-input::placeholder { color: rgba(255,255,255,0.3); }
+
+    .btn-primary {
+      width: 100%; padding: 15px;
+      background: #233D8D; 
+      color: #fff; border: none; font-family: 'Inter', sans-serif;
+      text-transform: uppercase; font-weight: 600; letter-spacing: 0.1em;
+      cursor: none; transition: all 0.3s; margin-top: 10px;
+      position: relative; overflow: hidden;
+    }
+    .btn-primary:hover { background: #1a2e6e; letter-spacing: 0.2em; }
+
+    .btn-google {
+      width: 100%; padding: 12px;
+      background: #fff; color: #333;
+      border: none; font-family: 'Inter', sans-serif; font-weight: 600;
+      display: flex; align-items: center; justify-content: center; gap: 10px;
+      cursor: none; transition: transform 0.2s; margin-top: 15px;
+    }
+    .btn-google:hover { transform: scale(1.02); }
+    .divider { margin: 20px 0; width: 100%; height: 1px; background: rgba(255,255,255,0.1); }
+
+    .switch-text {
+      margin-top: 20px; font-family: 'Inter', sans-serif; font-size: 0.85rem; color: #9E7F63;
+    }
+    .switch-link {
+      color: #fff; font-weight: 600; text-decoration: none; cursor: none;
+      border-bottom: 1px dotted #fff; margin-left: 5px;
+    }
+    .switch-link:hover { color: #233D8D; border-color: #233D8D; }
+
+    .message-box {
+      font-family: 'Inter', sans-serif; font-size: 0.8rem;
+      margin-bottom: 15px; height: 20px; text-align: center;
+    }
+    .msg-error { color: #ff6b6b; }
+    .msg-success { color: #51cf66; }
+
+    @media (max-width: 500px) {
+      .card-3d { width: 90vw; min-height: 550px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="noise-overlay"></div>
+  <div class="preloader" id="preloader">
+    <div class="loader-text">Loading</div>
+  </div>
+
+  <div class="cursor-dot" data-cursor-dot></div>
+  <div class="cursor-outline" data-cursor-outline></div>
+
+  <nav class="main-nav" id="mainNav">
+    <button class="menu-btn-fixed hover-trigger magnetic" onclick="toggleNav()">CLOSE</button>
+    <a href="index.html" class="nav-link hover-trigger" onclick="toggleNav();">Home</a>
+    <a href="about.html" class="nav-link hover-trigger" onclick="toggleNav();">About</a>
+    <a href="LegalTerms.html" class="nav-link hover-trigger" onclick="toggleNav();">Legal & Terms</a>
+    <a href="#" class="nav-link hover-trigger" onclick="toggleNav();">Login/Signup</a>
+  </nav>
+
+  <img src="PixellRiverLogo.png" alt="Pixell River Logo" class="logo-top-left hover-trigger" id="logoImg" onclick="window.location.href='index.html'" />
+  
+  <button class="menu-btn-static hover-trigger magnetic" onclick="toggleNav()">MENU</button>
+
+  <div class="auth-wrapper">
+    <div class="card-3d" id="card3d">
+      
+      <div class="card-face card-face-front">
+        <div class="auth-header">
+          <h1 class="auth-title">Welcome Back</h1>
+          <div class="auth-subtitle">Access your portfolio</div>
+        </div>
+        
+        <div class="message-box" id="loginMsg"></div>
+
+        <div class="input-group">
+          <input type="email" class="auth-input hover-trigger" id="loginEmail" placeholder="Email Address" required>
+        </div>
+        <div class="input-group">
+          <input type="password" class="auth-input hover-trigger" id="loginPass" placeholder="Password" required>
+        </div>
+
+        <button class="btn-primary hover-trigger" onclick="performLogin()">Log In</button>
+        
+        <div class="divider"></div>
+        
+        <button class="btn-google hover-trigger" onclick="googleSim()">
+          <i class="fa-brands fa-google"></i> Continue with Google
+        </button>
+
+        <div class="switch-text">
+          Not a member? <span class="switch-link hover-trigger" onclick="flipCard()">Apply for Access</span>
+        </div>
+      </div>
+
+      <div class="card-face card-face-back">
+        <div class="auth-header">
+          <h1 class="auth-title">Join PiXELL</h1>
+          <div class="auth-subtitle">Begin your journey</div>
+        </div>
+
+        <div class="message-box" id="signupMsg"></div>
+
+        <div class="input-group">
+          <input type="text" class="auth-input hover-trigger" id="regName" placeholder="Full Name" required>
+        </div>
+        <div class="input-group">
+          <input type="email" class="auth-input hover-trigger" id="regEmail" placeholder="Email Address" required>
+        </div>
+        <div class="input-group">
+          <input type="password" class="auth-input hover-trigger" id="regPass" placeholder="Create Password" required>
+        </div>
+
+        <button class="btn-primary hover-trigger" onclick="performSignup()">Create Account</button>
+        
+        <div class="divider"></div>
+
+        <button class="btn-google hover-trigger" onclick="googleSim()">
+          <i class="fa-brands fa-google"></i> Sign up with Google
+        </button>
+
+        <div class="switch-text">
+          Already have an account? <span class="switch-link hover-trigger" onclick="flipCard()">Log In</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script>
+    // 1. Preloader
+    window.addEventListener("load", () => {
+      document.getElementById("preloader").classList.add("loaded");
+    });
+
+    // 2. Custom Cursor
+    const cursorDot = document.querySelector('[data-cursor-dot]');
+    const cursorOutline = document.querySelector('[data-cursor-outline]');
+
+    window.addEventListener('mousemove', function(e) {
+      const posX = e.clientX; const posY = e.clientY;
+      cursorDot.style.left = `${posX}px`; cursorDot.style.top = `${posY}px`;
+      cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 500, fill: "forwards" });
+    });
+
+    document.querySelectorAll('.hover-trigger').forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+    });
+
+    // 3. Magnetic Buttons
+    const magneticBtns = document.querySelectorAll('.magnetic');
+    magneticBtns.forEach(btn => {
+      btn.addEventListener('mousemove', function(e) {
+        const rect = btn.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+      });
+      btn.addEventListener('mouseleave', function() {
+        btn.style.transform = `translate(0px, 0px)`;
+      });
+    });
+
+    // 4. Toggle Nav
+    function toggleNav() {
+      const nav = document.getElementById('mainNav');
+      nav.classList.toggle('open');
+    }
+
+    // 5. Toggle Forms (Flip)
+    function flipCard() {
+      document.getElementById('card3d').classList.toggle('flipped');
+      document.getElementById('loginMsg').innerText = "";
+      document.getElementById('signupMsg').innerText = "";
+    }
+
+    // 6. DATABASE LOGIC (LocalStorage)
+    function getDB() {
+      return JSON.parse(localStorage.getItem('pixellUsers')) || [];
+    }
+
+    // --- SIGNUP ---
+    function performSignup() {
+      const name = document.getElementById('regName').value;
+      const email = document.getElementById('regEmail').value;
+      const pass = document.getElementById('regPass').value;
+      const msgBox = document.getElementById('signupMsg');
+
+      if(!name || !email || !pass) {
+        msgBox.innerText = "Please fill in all fields.";
+        msgBox.className = "message-box msg-error";
+        return;
+      }
+
+      const db = getDB();
+      const userExists = db.find(u => u.email === email);
+
+      if(userExists) {
+        msgBox.innerText = "Email already registered.";
+        msgBox.className = "message-box msg-error";
+      } else {
+        const newUser = { name, email, pass };
+        db.push(newUser);
+        localStorage.setItem('pixellUsers', JSON.stringify(db));
+        
+        // SET ACTIVE SESSION
+        localStorage.setItem('pixellActiveUser', JSON.stringify(newUser));
+
+        msgBox.innerText = "Account created! Redirecting...";
+        msgBox.className = "message-box msg-success";
+        
+        setTimeout(() => {
+          window.location.href = "dashboard.html";
+        }, 1000);
+      }
+    }
+
+    // --- LOGIN ---
+    function performLogin() {
+      const email = document.getElementById('loginEmail').value;
+      const pass = document.getElementById('loginPass').value;
+      const msgBox = document.getElementById('loginMsg');
+
+      const db = getDB();
+      // FIND SPECIFIC USER
+      const user = db.find(u => u.email === email && u.pass === pass);
+
+      if(user) {
+        // SET ACTIVE SESSION
+        localStorage.setItem('pixellActiveUser', JSON.stringify(user));
+
+        msgBox.innerText = `Welcome back, ${user.name}.`;
+        msgBox.className = "message-box msg-success";
+        setTimeout(() => {
+          window.location.href = "dashboard.html"; 
+        }, 1000);
+      } else {
+        msgBox.innerText = "Invalid credentials.";
+        msgBox.className = "message-box msg-error";
+      }
+    }
+
+    function googleSim() {
+      alert("Google OAuth Simulation: Connected.");
+    }
+  </script>
+</body>
+</html>

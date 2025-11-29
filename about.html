@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>About PiXELL-River</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <link href="https://fonts.googleapis.com/css?family=Playfair+Display:400,500,600,700,900&display=swap" rel="stylesheet">
+  <style>
+    /* 1. GLOBAL SETTINGS */
+    html { scroll-behavior: smooth; cursor: none; }
+    
+    ::-webkit-scrollbar { width: 3px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: #9E7F63; border-radius: 0; opacity: 0.8; }
+    ::-webkit-scrollbar-thumb:hover { background: #c4a78b; width: 5px; }
+
+    ::selection { background: #233D8D; color: #fff; }
+    ::-moz-selection { background: #233D8D; color: #fff; }
+
+    html, body {
+      margin: 0; padding: 0;
+      font-family: 'Playfair Display', serif;
+      color: #9E7F63; 
+      /* Deep Royal Navy Gradient */
+      background: linear-gradient(to bottom, #111c36 0%, #050810 100%);
+      letter-spacing: 0.01em; overflow-x: hidden;
+      min-height: 100vh;
+    }
+
+    /* --- TEXTURE & PRELOADER --- */
+    .noise-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      pointer-events: none; z-index: 8000; opacity: 0.06; 
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='1'/%3E%3C/svg%3E");
+    }
+
+    .preloader {
+      position: fixed; top: 0; left: 0; width: 100vw; height: 100vh;
+      background: #0d1620; z-index: 99999;
+      display: flex; justify-content: center; align-items: center;
+      transition: transform 0.8s cubic-bezier(0.7, 0, 0.3, 1);
+    }
+    .loader-text {
+      font-size: 1.5em; letter-spacing: 0.5em; color: #f8d9bc;
+      text-transform: uppercase; animation: pulse 2s infinite;
+    }
+    .preloader.loaded { transform: translateY(-100%); }
+
+    /* --- SCROLL PROGRESS LINE (NEW FEATURE) --- */
+    .scroll-progress-track {
+      position: fixed; left: 0; top: 0; width: 4px; height: 100vh;
+      background: rgba(255,255,255,0.05); z-index: 9000;
+    }
+    .scroll-progress-bar {
+      width: 100%; height: 0%; background: #9E7F63;
+      transition: height 0.1s ease-out;
+    }
+
+    /* --- CURSOR --- */
+    .cursor-dot, .cursor-outline {
+      position: fixed; top: 0; left: 0;
+      transform: translate(-50%, -50%);
+      border-radius: 50%; z-index: 200000; pointer-events: none;
+    }
+    .cursor-dot { width: 8px; height: 8px; background-color: #f8d9bc; }
+    .cursor-outline {
+      width: 40px; height: 40px;
+      border: 1px solid rgba(248, 217, 188, 0.5);
+      transition: width 0.2s, height 0.2s, background-color 0.2s;
+    }
+    body.hovering .cursor-outline {
+      width: 70px; height: 70px;
+      background-color: rgba(248, 217, 188, 0.1);
+      border-color: transparent; backdrop-filter: blur(2px);
+    }
+
+    /* --- HEADER / NAVIGATION --- */
+    .logo-top-left {
+      position: absolute !important; top: 22px; left: 22px; height: 98px; width: auto;
+      z-index: 9999; filter: drop-shadow(0 2px 16px #1f93ff51); transition: transform 0.2s; cursor: none;
+    }
+
+    .menu-btn-scroll {
+      position: absolute !important; top: 40px; right: 42px;
+      font-family: inherit; background: transparent; color: #f8d9bc;
+      border: 1px solid rgba(248, 217, 188, 0.3);
+      font-size: 0.9em; letter-spacing: 0.25em; font-weight: 600;
+      z-index: 9999; text-transform: uppercase; padding: 12px 28px; border-radius: 50px; 
+      backdrop-filter: blur(4px); transition: all 0.3s ease; cursor: none; 
+    }
+    .menu-btn-fixed {
+      position: absolute; top: 40px; right: 42px;
+      font-family: inherit; background: transparent; 
+      color: #fff; border: 1px solid #fff; 
+      font-size: 0.9em; letter-spacing: 0.25em; font-weight: 600;
+      text-transform: uppercase; padding: 12px 28px; border-radius: 50px; cursor: none; 
+    }
+    body.nav-active .menu-btn-scroll { opacity: 0; pointer-events: none; }
+
+    .main-nav {
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      gap: 40px; position: fixed; left: 0; top: 0; width: 100vw; height: 100vh;
+      background: rgba(13, 22, 32, 0.96); backdrop-filter: blur(10px);
+      z-index: 9000; transform: translateY(-100%); opacity: 0; pointer-events: none;
+      transition: transform 0.6s cubic-bezier(0.65, 0, 0.35, 1), opacity 0.4s;
+    }
+    .main-nav.open { transform: translateY(0%); opacity: 1; pointer-events: auto; }
+    .main-nav .nav-link {
+      font-size: 3rem; color: #f8d9bc; text-decoration: none;
+      opacity: 0; transform: translateY(20px);
+      transition: all 0.4s ease; font-family: inherit; font-weight: 300; letter-spacing: 0.05em;
+    }
+    .main-nav.open .nav-link { opacity: 0.7; transform: translateY(0); }
+    .main-nav .nav-link:hover { opacity: 1; color: #fff; font-style: italic; letter-spacing: 0.1em; transform: translateX(20px); }
+
+    /* --- PAGE LAYOUT --- */
+    .hero-wrapper {
+      position: relative;
+      height: 60vh;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      margin-top: 100px;
+    }
+
+    .page-title {
+      font-size: 10vw; line-height: 1; color: #9E7F63; margin: 0;
+      opacity: 0; transform: translateY(50px);
+      animation: fadeInUp 1s cubic-bezier(0.2, 1, 0.3, 1) forwards 0.5s;
+    }
+    .subtitle-txt {
+      font-size: 1.2em; color: #f8d9bc; letter-spacing: 0.2em; text-transform: uppercase;
+      margin-top: 20px; opacity: 0; animation: fadeIn 1s ease forwards 0.8s;
+    }
+    .vertical-line { width: 1px; height: 100px; background: #9E7F63; margin: 50px auto; opacity: 0.5; }
+
+    /* --- MAIN CONTENT --- */
+    .editorial-layout {
+      max-width: 1200px; margin: 0 auto; padding: 50px 20px 150px 20px;
+      position: relative; z-index: 10;
+    }
+    .section-block {
+      margin-bottom: 150px; opacity: 0; transform: translateY(50px);
+      transition: all 0.8s cubic-bezier(0.2, 1, 0.3, 1);
+    }
+    .section-block.visible { opacity: 1; transform: translateY(0); }
+
+    .section-title {
+      font-size: 2.5em; color: #fff;
+      border-left: 2px solid #233D8D; padding-left: 30px; margin-bottom: 40px;
+    }
+    .lead-text { font-size: 1.5em; line-height: 1.6; color: #c4a78b; max-width: 800px; }
+
+    /* --- LEDGER STYLE GRID (For Business Functions) --- */
+    .ledger-container {
+      display: flex; flex-direction: column; gap: 2px;
+    }
+    .ledger-row {
+      display: grid; grid-template-columns: 1fr 2fr;
+      background: rgba(35, 61, 141, 0.1); /* Subtle Blue */
+      padding: 25px; 
+      border-left: 1px solid #9E7F63;
+      transition: all 0.3s ease;
+    }
+    .ledger-row:hover { background: rgba(35, 61, 141, 0.3); padding-left: 35px; }
+    
+    .ledger-head {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2em; font-weight: 700; color: #9E7F63; text-transform: uppercase; letter-spacing: 0.1em;
+    }
+    .ledger-data {
+      font-family: sans-serif; font-size: 0.95em; line-height: 1.6; color: #eaf6fb; opacity: 0.8;
+    }
+
+    /* --- VALUES CARDS (Sapphire) --- */
+    .values-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 30px;
+    }
+    .value-card {
+      background: #233D8D; padding: 40px; position: relative; overflow: hidden;
+      transition: transform 0.4s ease;
+    }
+    .value-card:hover { transform: translateY(-10px); }
+    .value-card::before {
+      content: ""; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+      background: linear-gradient(to bottom, rgba(35, 61, 141, 0.8), rgba(5, 8, 16, 0.95)); z-index: 1;
+    }
+    .card-content { position: relative; z-index: 2; }
+    .card-title { font-size: 1.4em; color: #fff; margin-bottom: 15px; letter-spacing: 0.05em; }
+    .card-txt { font-size: 1em; color: #f8d9bc; line-height: 1.5; font-family: sans-serif; opacity: 0.8; }
+
+    /* --- TEAM LIST --- */
+    .team-list { display: flex; flex-direction: column; border-top: 1px solid rgba(158, 127, 99, 0.3); }
+    .team-row {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 30px 0; border-bottom: 1px solid rgba(158, 127, 99, 0.3);
+      transition: all 0.4s ease; cursor: none;
+    }
+    .team-row:hover { background: rgba(35, 61, 141, 0.1); padding-left: 20px; padding-right: 20px; }
+    .team-name { font-size: 1.8em; color: #fff; }
+    .team-role { font-size: 0.9em; text-transform: uppercase; letter-spacing: 0.2em; color: #9E7F63; }
+
+    footer { text-align: center; color: #5b6e82; font-size: 0.8em; letter-spacing: 0.2em; text-transform: uppercase; padding-bottom: 40px; }
+
+    @keyframes fadeInUp { to { opacity: 1; transform: translateY(0); } }
+    @keyframes fadeIn { to { opacity: 1; } }
+
+    @media (max-width: 768px) {
+      .page-title { font-size: 15vw; }
+      .team-row, .ledger-row { grid-template-columns: 1fr; flex-direction: column; align-items: flex-start; gap: 10px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="noise-overlay"></div>
+  <div class="preloader" id="preloader">
+    <div class="loader-text">Loading</div>
+  </div>
+
+  <div class="scroll-progress-track">
+    <div class="scroll-progress-bar" id="progressBar"></div>
+  </div>
+
+  <div class="cursor-dot" data-cursor-dot></div>
+  <div class="cursor-outline" data-cursor-outline></div>
+
+  <nav class="main-nav" id="mainNav">
+    <button class="menu-btn-fixed hover-trigger magnetic" onclick="toggleNav()">CLOSE</button>
+    <a href="index.html" class="nav-link hover-trigger" onclick="toggleNav()">Home</a>
+    <a href="#" class="nav-link hover-trigger" onclick="toggleNav()">About</a>
+    <a href="LegalTerms.html" class="nav-link hover-trigger">Legal & Terms</a>
+    <a href="login.html" class="nav-link hover-trigger">Login/Signup</a>
+  </nav>
+
+  <img src="PixellRiverLogo.png" alt="Pixell River Logo" class="logo-top-left hover-trigger" id="logoImg" onclick="window.location.href='index.html'" />
+  <button class="menu-btn-scroll hover-trigger magnetic" id="scrollMenuBtn" onclick="toggleNav()">MENU</button>
+
+  <div class="hero-wrapper">
+    <h1 class="page-title">Who We Are</h1>
+    <div class="subtitle-txt">Trust. Integrity. Innovation.</div>
+  </div>
+
+  <div class="vertical-line"></div>
+
+  <div class="editorial-layout">
+
+    <div class="section-block animate-on-scroll">
+      <h2 class="section-title">Core Values</h2>
+      <div class="values-grid">
+        <div class="value-card hover-trigger">
+          <div class="card-content">
+            <div class="card-title">People Commitment</div>
+            <div class="card-txt">We develop relationships where every interaction is service-driven, responsive to individual and community needs.</div>
+          </div>
+        </div>
+        <div class="value-card hover-trigger">
+          <div class="card-content">
+            <div class="card-title">Trust & Accountability</div>
+            <div class="card-txt">We nurture trust, exercise high customer service standards, and always deliver on our commitments.</div>
+          </div>
+        </div>
+        <div class="value-card hover-trigger">
+          <div class="card-content">
+            <div class="card-title">Integrity & Honour</div>
+            <div class="card-txt">We uphold the highest standards of integrity and treat people and resources with honesty and equality.</div>
+          </div>
+        </div>
+        <div class="value-card hover-trigger">
+          <div class="card-content">
+            <div class="card-title">Quality</div>
+            <div class="card-txt">We provide outstanding products and unsurpassed service that, together, deliver premium value.</div>
+          </div>
+        </div>
+        <div class="value-card hover-trigger">
+          <div class="card-content">
+            <div class="card-title">Collaboration</div>
+            <div class="card-txt">We work together, across boundaries, to meet the needs of our customers and ensure their best interests are protected.</div>
+          </div>
+        </div>
+        <div class="value-card hover-trigger">
+          <div class="card-content">
+            <div class="card-title">Innovation</div>
+            <div class="card-txt">We are innovative and exhibit a strong will to transform our services to meet every aspect of modern life.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-block animate-on-scroll">
+      <h2 class="section-title">Business Processes</h2>
+      <div class="ledger-container">
+        
+        <div class="ledger-row hover-trigger">
+          <div class="ledger-head">Business Management</div>
+          <div class="ledger-data">
+            Strategic Management • Fiscal & Accounting Management • Risk & Compliance • Performance Management • HR Management • Enterprise Architecture
+          </div>
+        </div>
+
+        <div class="ledger-row hover-trigger">
+          <div class="ledger-head">Product & Sales</div>
+          <div class="ledger-data">
+            Product Engineering • Market Development • Salesforce Management • Sales Execution
+          </div>
+        </div>
+
+        <div class="ledger-row hover-trigger">
+          <div class="ledger-head">Customer Management</div>
+          <div class="ledger-data">
+            Customer Contact Management • Customer Data Management
+          </div>
+        </div>
+
+        <div class="ledger-row hover-trigger">
+          <div class="ledger-head">Money Management</div>
+          <div class="ledger-data">
+            Banking Management • Accounts Management • Cash Flow Management • Payment Processing
+          </div>
+        </div>
+
+        <div class="ledger-row hover-trigger">
+          <div class="ledger-head">Asset Management</div>
+          <div class="ledger-data">
+            Investment Strategy • Investment Performance • Portfolio Management
+          </div>
+        </div>
+
+        <div class="ledger-row hover-trigger">
+          <div class="ledger-head">Business Support</div>
+          <div class="ledger-data">
+            Organizational Development • Facility Management • Vendor Management • IT Management
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <div class="section-block animate-on-scroll">
+      <h2 class="section-title">Leadership</h2>
+      <div class="team-list">
+        <div class="team-row hover-trigger">
+          <span class="team-name">Jo-Anne Sinclair</span>
+          <span class="team-role">Chief Executive Officer</span>
+        </div>
+        <div class="team-row hover-trigger">
+          <span class="team-name">Jackson Smith</span>
+          <span class="team-role">Chief Operating Officer</span>
+        </div>
+        <div class="team-row hover-trigger">
+          <span class="team-name">Susan Thomas</span>
+          <span class="team-role">Chief Financial Officer</span>
+        </div>
+        <div class="team-row hover-trigger">
+          <span class="team-name">Josee Benjamin</span>
+          <span class="team-role">Chief Information Officer</span>
+        </div>
+        <div class="team-row hover-trigger">
+          <span class="team-name">Vincent Grey</span>
+          <span class="team-role">VP Sales & Marketing</span>
+        </div>
+        <div class="team-row hover-trigger">
+          <span class="team-name">Richa Kaur</span>
+          <span class="team-role">VP Client Services</span>
+        </div>
+      </div>
+    </div>
+
+    <footer>
+      Anel Ibrahimovic Milas <br /> Port: 8080 Class Section: 268724 <br /><br />
+      &copy; 2025 PiXELL-River Financial
+    </footer>
+
+  </div>
+
+  <script>
+    // 1. Preloader
+    window.addEventListener("load", () => {
+      document.getElementById("preloader").classList.add("loaded");
+    });
+
+    // 2. Custom Cursor
+    const cursorDot = document.querySelector('[data-cursor-dot]');
+    const cursorOutline = document.querySelector('[data-cursor-outline]');
+
+    window.addEventListener('mousemove', function(e) {
+      const posX = e.clientX; const posY = e.clientY;
+      cursorDot.style.left = `${posX}px`; cursorDot.style.top = `${posY}px`;
+      cursorOutline.animate({ left: `${posX}px`, top: `${posY}px` }, { duration: 500, fill: "forwards" });
+    });
+
+    document.querySelectorAll('.hover-trigger').forEach(el => {
+      el.addEventListener('mouseenter', () => document.body.classList.add('hovering'));
+      el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
+    });
+
+    // 3. Magnetic Buttons
+    const magneticBtns = document.querySelectorAll('.magnetic');
+    magneticBtns.forEach(btn => {
+      btn.addEventListener('mousemove', function(e) {
+        const rect = btn.getBoundingClientRect();
+        const x = e.clientX - rect.left - rect.width / 2;
+        const y = e.clientY - rect.top - rect.height / 2;
+        btn.style.transform = `translate(${x * 0.3}px, ${y * 0.3}px)`;
+      });
+      btn.addEventListener('mouseleave', function() {
+        btn.style.transform = `translate(0px, 0px)`;
+      });
+    });
+
+    // 4. Menu Toggle
+    function toggleNav() {
+      const nav = document.getElementById('mainNav');
+      nav.classList.toggle('open');
+      document.body.classList.toggle('nav-active');
+    }
+
+    // 5. Scroll Animation & Progress Bar
+    window.addEventListener('scroll', () => {
+      const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      const height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      const scrolled = (winScroll / height) * 100;
+      document.getElementById("progressBar").style.height = scrolled + "%";
+    });
+
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(entry => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('visible');
+          observer.unobserve(entry.target);
+        }
+      });
+    }, { threshold: 0.15 });
+    
+    document.querySelectorAll('.animate-on-scroll').forEach(el => observer.observe(el));
+  </script>
+</body>
+</html>
