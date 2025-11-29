@@ -28,7 +28,7 @@
       color: var(--text-gold);
       font-family: var(--font-serif);
       overflow-x: hidden;
-      cursor: none;
+      cursor: none; /* Custom cursor */
     }
 
     /* SMOOTH SCROLL CONTAINER (Lenis) */
@@ -43,7 +43,7 @@
       width: 12px; height: 12px;
       background: var(--text-gold);
       border-radius: 50%;
-      pointer-events: none; z-index: 9999;
+      pointer-events: none; z-index: 20000;
       transform: translate(-50%, -50%);
       transition: width 0.3s, height 0.3s, background 0.3s;
       mix-blend-mode: difference;
@@ -53,7 +53,7 @@
       width: 50px; height: 50px;
       border: 1px solid rgba(196, 167, 139, 0.3);
       border-radius: 50%;
-      pointer-events: none; z-index: 9998;
+      pointer-events: none; z-index: 19999;
       transform: translate(-50%, -50%);
       transition: all 0.1s ease-out;
     }
@@ -100,9 +100,9 @@
       position: fixed; top: 0; left: 0; width: 100%; padding: 40px;
       display: flex; justify-content: space-between; align-items: flex-start;
       z-index: 100; mix-blend-mode: difference;
-      pointer-events: none; /* Allow clicks to pass through header space */
+      pointer-events: none; /* Allow clicks through empty space */
     }
-    .logo, .menu-trigger { pointer-events: auto; } /* Re-enable clicks */
+    .logo, .menu-trigger { pointer-events: auto; }
 
     .logo {
       font-family: var(--font-sans); font-weight: 700; letter-spacing: 2px;
@@ -142,15 +142,14 @@
       height: 100vh; width: 100%; position: relative;
       display: flex; flex-direction: column; justify-content: center; align-items: center;
       perspective: 1000px;
-      pointer-events: none; /* Allows click through */
+      pointer-events: none; /* Key fix: click-through */
     }
     
-    /* Interactive elements inside hero need auto pointer events */
-    .hero-title, .hero-subtitle, .scroll-indicator { pointer-events: auto; }
+    .hero-title, .hero-subtitle { pointer-events: auto; }
 
     .hero-title {
       font-size: 15vw; line-height: 0.85; text-transform: uppercase;
-      color: var(--text-gold); opacity: 0; /* Animated in JS */
+      color: var(--text-gold); opacity: 0; 
       text-align: center; mix-blend-mode: overlay;
     }
     .hero-subtitle {
@@ -159,25 +158,28 @@
       opacity: 0; text-transform: uppercase;
     }
     
-    .scroll-indicator {
-      position: absolute; bottom: 50px;
-      display: flex; flex-direction: column; align-items: center; gap: 10px;
+    /* DIVE DEEPER BUTTON - FORCE CLICKABLE */
+    .dive-btn-wrapper {
+      position: absolute; 
+      bottom: 80px; 
+      left: 50%; 
+      transform: translateX(-50%);
+      z-index: 9999 !important; /* Highest Layer */
+      pointer-events: auto !important; /* Force Click */
       cursor: none;
-      z-index: 50;
+      display: flex; flex-direction: column; align-items: center; gap: 15px;
     }
-    .scroll-text { font-family: var(--font-sans); font-size: 10px; letter-spacing: 2px; }
-    .scroll-line { width: 1px; height: 60px; background: rgba(196, 167, 139, 0.5); }
 
-    /* DIVE DEEPER BUTTON */
     .dive-btn {
-      position: absolute; bottom: 120px; /* Above scroll line */
       font-family: var(--font-sans); font-size: 11px; letter-spacing: 3px;
-      color: #fff; padding: 15px 30px; border: 1px solid rgba(255,255,255,0.3);
-      border-radius: 50px; cursor: none; pointer-events: auto; z-index: 100;
-      background: rgba(0,0,0,0.3); backdrop-filter: blur(5px);
+      color: #fff; padding: 15px 40px; border: 1px solid rgba(255,255,255,0.3);
+      border-radius: 50px; background: rgba(0,0,0,0.4); backdrop-filter: blur(5px);
       transition: all 0.3s; text-transform: uppercase;
+      pointer-events: auto; cursor: none;
     }
     .dive-btn:hover { background: #fff; color: #000; }
+    
+    .scroll-line { width: 1px; height: 60px; background: rgba(196, 167, 139, 0.5); }
 
     /* --- 6. SECTIONS --- */
     .marquee-container {
@@ -201,17 +203,16 @@
       width: 100%; padding-bottom: 60%; 
       position: relative; overflow: hidden; border-radius: 4px;
       cursor: none;
-      /* FIX FOR DISAPPEARING IMAGE */
-      transform: translateZ(0); 
-      -webkit-transform: translateZ(0);
+      /* Fix for disappearing images */
+      transform: translate3d(0,0,0);
     }
     .meme-container { padding-bottom: 100%; } 
     
     .parallax-img {
-      position: absolute; top: 0; left: 0; width: 100%; height: 120%;
+      position: absolute; top: -20%; left: 0; width: 100%; height: 140%; /* Taller for parallax */
       object-fit: cover; filter: grayscale(100%);
       transition: filter 0.5s ease;
-      will-change: transform; /* Hint to browser to keep it rendered */
+      will-change: transform;
     }
     .card-wrap:hover .parallax-img { filter: grayscale(0%); }
 
@@ -335,12 +336,8 @@
     <h1 class="hero-title">PiXELL<br><span style="color:#fff;">River</span></h1>
     <p class="hero-subtitle">Secure Financial Architecture</p>
     
-    <button class="dive-btn hover-target" onclick="scrollToGrid()">
-      DIVE DEEPER
-    </button>
-
-    <div class="scroll-indicator hover-target" onclick="scrollToGrid()">
-      <span class="scroll-text">SCROLL</span>
+    <div class="dive-btn-wrapper hover-target" onclick="scrollToGrid()">
+      <button class="dive-btn">DIVE DEEPER</button>
       <div class="scroll-line"></div>
     </div>
   </section>
@@ -467,28 +464,10 @@
     }
     requestAnimationFrame(raf);
 
-    // 2. CONNECT LENIS TO GSAP (FIX FOR DISAPPEARING IMAGES)
+    // 2. GSAP SETUP
     gsap.registerPlugin(ScrollTrigger);
     
-    // This allows ScrollTrigger to work perfectly with smooth scrolling
-    lenis.on('scroll', ScrollTrigger.update);
-    gsap.ticker.add((time) => {
-      lenis.raf(time * 1000);
-    });
-    gsap.ticker.lagSmoothing(0);
-
-    // 3. FORCE REFRESH ON LOAD (Fix for Back Button/Cache issues)
-    window.addEventListener('load', () => {
-      ScrollTrigger.refresh();
-    });
-    // Fix for "back button" browser cache
-    window.addEventListener('pageshow', (event) => {
-      if (event.persisted) {
-        ScrollTrigger.refresh();
-      }
-    });
-
-    // 4. ANIMATIONS
+    // Loader
     const counter = document.querySelector('.counter');
     let count = 0;
     const interval = setInterval(() => {
@@ -507,18 +486,25 @@
       gsap.to('.hero-subtitle', { opacity: 1, duration: 1.5, delay: 0.8 });
     }
 
+    // PARALLAX IMAGE FIX (Using fromTo prevents disappearing images)
     gsap.utils.toArray('.card-wrap').forEach(card => {
       const img = card.querySelector('.parallax-img');
-      gsap.to(img, {
-        y: '20%', 
-        ease: 'none',
-        scrollTrigger: {
-          trigger: card,
-          scrub: true
+      gsap.fromTo(img, 
+        { y: '-20%' }, // Start slightly up
+        { 
+          y: '20%',    // End slightly down
+          ease: 'none',
+          scrollTrigger: {
+            trigger: card,
+            start: "top bottom", // Start when card enters bottom of screen
+            end: "bottom top",   // End when card leaves top
+            scrub: true
+          }
         }
-      });
+      );
     });
 
+    // Marquee
     gsap.to(".marquee-text", {
       xPercent: -50,
       ease: "none",
@@ -530,7 +516,7 @@
       }
     });
 
-    // 5. CURSOR
+    // 3. CURSOR
     const ball = document.querySelector('.cursor-ball');
     const outline = document.querySelector('.cursor-outline');
     
@@ -544,13 +530,14 @@
       el.addEventListener('mouseleave', () => document.body.classList.remove('hovering'));
     });
 
-    // 6. LOGIC
+    // 4. SCROLL TO GRID (Native Click Handling)
     function scrollToGrid() {
+      // Use native smooth scroll which is more robust for buttons
       const section = document.getElementById('editorialGrid');
-      // Use Lenis for smooth scroll instead of default
-      lenis.scrollTo(section);
+      section.scrollIntoView({ behavior: 'smooth' });
     }
 
+    // 5. HELPER FUNCTIONS
     const nextInput = document.getElementById('redirectInput');
     if(nextInput) {
       const currentUrl = window.location.href;
@@ -576,6 +563,13 @@
     function toggleMenu() {
       document.getElementById('fsMenu').classList.toggle('active');
     }
+    
+    // Force Refresh on back button navigation to fix disappearing images
+    window.onpageshow = function(event) {
+      if (event.persisted) {
+        window.location.reload();
+      }
+    };
   </script>
 </body>
 </html>
